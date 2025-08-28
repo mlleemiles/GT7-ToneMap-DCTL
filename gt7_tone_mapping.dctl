@@ -34,6 +34,7 @@ DEFINE_UI_PARAMS(blendRatio, Blend Ratio, DCTLUI_SLIDER_FLOAT, 0.6, 0.0, 1.0, 0.
 DEFINE_UI_PARAMS(fadeStart, Fade Start, DCTLUI_SLIDER_FLOAT, 0.98, 0.0, 32.0, 0.001)
 DEFINE_UI_PARAMS(fadeEnd, Fade End, DCTLUI_SLIDER_FLOAT, 1.16, 0.0, 32.0, 0.001)
 
+DEFINE_UI_PARAMS(sdrWhitePoint, SDR Paper White, DCTLUI_SLIDER_FLOAT, 250.0, 0.0, 1000.0, 1.0)
 DEFINE_UI_PARAMS(alpha, Alpha, DCTLUI_SLIDER_FLOAT, 0.25, 0.01, 0.99, 0.001)
 DEFINE_UI_PARAMS(grayPoint, Mid Point, DCTLUI_SLIDER_FLOAT, 0.538, 0.0, 1.0, 0.001)
 DEFINE_UI_PARAMS(linearSection, Linear Section, DCTLUI_SLIDER_FLOAT, 0.444, 0.0, 1.0, 0.001)
@@ -44,7 +45,7 @@ DEFINE_UI_PARAMS(hdr, HDR Mode, DCTLUI_CHECK_BOX, 0)
 
 typedef struct
 {
-	float br, fs, fe, al, gp, ls, ts;
+	float br, fs, fe, al, gp, ls, ts, pw;
 } GT7ToneMappingTweaks;
 
 // -----------------------------------------------------------------------------
@@ -407,8 +408,8 @@ __DEVICE__ GT7ToneMapping initializeAsSDR(GT7ToneMapping tm, GT7ToneMappingTweak
 	//
 	// * These adjustments ensure that the visual appearance (in terms of brightness)
 	//   stays generally consistent across both HDR and SDR outputs for the same rendered content.
-	tm.sdrCorrectionFactor_ = 1.0f / physicalValueToFrameBufferValue(GRAN_TURISMO_SDR_PAPER_WHITE);
-	tm = initializeParameters(GRAN_TURISMO_SDR_PAPER_WHITE, tm, tmt);
+	tm.sdrCorrectionFactor_ = 1.0f / physicalValueToFrameBufferValue(tmt.pw);//1.0f / physicalValueToFrameBufferValue(GRAN_TURISMO_SDR_PAPER_WHITE);
+	tm = initializeParameters(tmt.pw, tm, tmt);//initializeParameters(GRAN_TURISMO_SDR_PAPER_WHITE, tm, tmt);
 	
 	return tm;
 }
@@ -476,7 +477,7 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p
 	tmt.gp = grayPoint;
 	tmt.ls = linearSection;
 	tmt.ts = toeStrength;
-	//tmt.tl = targetLuminance;
+	tmt.pw = sdrWhitePoint;
 	
 	if (hdr == 0)
 	{
